@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Control Derivativo | Versión Alterna</title>
+  <style>
+    :root{
+      --bg-a: #0b1020;
+      --bg-b: #071827;
+      --card: rgba(255,255,255,0.04);
+      --accent: #9b59b6; /* morado */
+      --accent-2: #16a085; /* verde azulado */
+      --text: #dbeef0;
+      --muted: #9fbfcf;
+      --mono: 'Courier New', monospace;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+      background: linear-gradient(180deg,var(--bg-a),var(--bg-b));
+      color:var(--text);
+      padding:20px;
+      min-height:100vh;
+    }
+
+    .wrap{
+      max-width:1400px;
+      margin:0 auto;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:16px;
+      padding:18px;
+      border:1px solid rgba(155,89,182,0.08);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.6);
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+      padding-bottom:10px;
+      border-bottom:1px solid rgba(255,255,255,0.03);
+    }
+    h1{
+      font-size:1.25rem;
+      background: linear-gradient(90deg,var(--accent-2),var(--accent));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .badge{
+      background: linear-gradient(90deg, rgba(22,160,133,0.12), rgba(155,89,182,0.12));
+      color:var(--muted);
+      padding:6px 12px;
+      border-radius:999px;
+      font-family:var(--mono);
+      font-size:0.82rem;
+    }
+
+    /* Layout: left theory column, center visual, right controls stacked */
+    .grid{
+      display:grid;
+      grid-template-columns: 320px 1fr 360px;
+      gap:16px;
+      margin-top:14px;
+    }
+
+    /* Theory cards (left) */
+    .theory-col{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .theory-card{
+      background:var(--card);
+      border-left:4px solid var(--accent);
+      padding:12px;
+      border-radius:10px;
+      min-height:110px;
+    }
+    .theory-card h4{ color:#ffd966; margin-bottom:8px; font-size:0.95rem;}
+    .theory-card p{ font-size:0.86rem; color:var(--text); line-height:1.25rem;}
+    .formula{
+      display:inline-block;
+      margin-top:8px;
+      font-family:var(--mono);
+      background:rgba(0,0,0,0.45);
+      padding:6px 8px;
+      border-radius:8px;
+      color:#ffd1a6;
+      font-weight:700;
+    }
+
+    /* Visual center */
+    .visual{
+      background: linear-gradient(180deg, rgba(22,160,133,0.02), rgba(155,89,182,0.02));
+      border-radius:12px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      min-height:420px;
+    }
+    .visual .title{ font-weight:700; text-align:center; color:var(--muted); }
+
+    #arena{
+      position:relative;
+      height:260px;
+      background: linear-gradient(180deg,#071827,#04121a);
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.02);
+    }
+    .scale{
+      position:absolute; left:14px; right:14px; bottom:18px; height:8px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:8px;
+    }
+    .target{
+      position:absolute; width:8px; height:44px; background:var(--accent-2);
+      bottom:22px; border-radius:6px; transform:translateX(-50%);
+      box-shadow:0 0 10px rgba(22,160,133,0.25);
+    }
+    .effector{
+      position:absolute; width:30px; height:30px; background:var(--accent);
+      border-radius:50%; top:50%; transform:translate(-50%,-50%);
+      box-shadow:0 0 14px rgba(155,89,182,0.35);
+      transition:left 0.04s linear;
+    }
+    .deriv-bubble{
+      position:absolute; top:8px; right:12px; background:rgba(0,0,0,0.45);
+      padding:8px 10px; border-radius:10px; font-family:var(--mono); color:#ffd1a6;
+      box-shadow:0 6px 18px rgba(0,0,0,0.5);
+    }
+
+    /* Graph area */
+    .graph{
+      background: rgba(0,0,0,0.35);
+      border-radius:10px;
+      padding:10px;
+    }
+    canvas{ width:100%; height:160px; background:linear-gradient(180deg,#021018,#03121a); border-radius:8px; display:block; }
+
+    /* Controls right column */
+    .controls{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .panel{
+      background:var(--card);
+      padding:12px;
+      border-radius:10px;
+    }
+    .panel label{ display:block; font-size:0.86rem; margin-bottom:8px; color:var(--muted); }
+    input[type=range]{ width:100%; accent-color: var(--accent); }
+    .mono{ font-family:var(--mono); font-weight:700; color:var(--text); }
+
+    .row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+    button{ background:linear-gradient(90deg,var(--accent),var(--accent-2)); border:none; padding:8px 12px; border-radius:10px; color:white; cursor:pointer; font-weight:700;}
+    button.ghost{ background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted); }
+
+    .stats{
+      display:grid;
+      grid-template-columns: repeat(2,1fr);
+      gap:8px;
+      margin-top:8px;
+    }
+    .stat{
+      background:rgba(0,0,0,0.35);
+      padding:8px;
+      border-radius:8px;
+      text-align:center;
+      font-size:0.86rem;
+    }
+
+    footer{ margin-top:14px; text-align:center; color:var(--muted); font-size:0.86rem; }
+
+    /* Responsive */
+    @media (max-width:1100px){
+      .grid{ grid-template-columns: 1fr; }
+      .theory-col{ order:2; }
+      .visual{ order:1; }
+      .controls{ order:3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🤖 CONTROL DERIVATIVO — INTERFAZ ALTERNA</h1>
+      <div class="badge">Kd = Ganancia Derivativa · Anticipación</div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT: theory cards -->
+      <div class="theory-col" aria-label="Teoría">
+        <div class="theory-card">
+          <h4>🔁 ECUACIÓN DEL CONTROL DERIVATIVO</h4>
+          <p>La señal de control es proporcional a la <strong>velocidad de cambio del error</strong>.</p>
+          <div class="formula">u(t) = Kd · de(t)/dt</div>
+          <p style="margin-top:6px;">Donde <strong>de/dt</strong> indica qué tan rápido varía el error.</p>
+        </div>
+
+        <div class="theory-card">
+          <h4>⚡ EFECTO: ANTICIPACIÓN</h4>
+          <p>Actúa antes de que el error crezca: si el error cambia rápido, aplica una corrección fuerte para frenar o acelerar.</p>
+          <p style="margin-top:6px;">Funciona como un amortiguador que reduce overshoot y oscilaciones.</p>
+        </div>
+
+        <div class="theory-card">
+          <h4>⚠️ PRECAUCIONES</h4>
+          <p>• Amplifica el ruido (por eso se filtra en la práctica).<br>• No se usa solo; suele combinarse con P o PI.<br>• Ideal para sistemas con inercia.</p>
+        </div>
+
+        <div class="theory-card">
+          <h4>🎮 APLICACIÓN AQUÍ</h4>
+          <p>El robot debe posicionarse rápido. La acción derivativa detecta la velocidad de aproximación y aplica freno antes del setpoint.</p>
+        </div>
+      </div>
+
+      <!-- CENTER: visual + graph -->
+      <div class="visual" role="region" aria-label="Simulación visual">
+        <div class="title">🤖 BRAZO ROBÓTICO — POSICIONAMIENTO LINEAL</div>
+
+        <div id="arena" aria-hidden="false">
+          <div class="scale" id="scale"></div>
+          <div class="target" id="target" style="left:75%"></div>
+          <div class="effector" id="effector" style="left:30%"></div>
+          <div class="deriv-bubble" id="derivBubble">de/dt: 0.00 %/s</div>
+        </div>
+
+        <div class="graph">
+          <div style="font-size:0.82rem; color:var(--muted); margin-bottom:6px;">📈 EVOLUCIÓN | ▬ Setpoint &nbsp; █ Posición &nbsp; 🟡 Velocidad (derivada)</div>
+          <canvas id="trendCanvas" width="800" height="160"></canvas>
+
+          <div class="stats" style="margin-top:10px;">
+            <div class="stat">📍 Posición: <strong id="statPos">--</strong></div>
+            <div class="stat">📉 Error: <strong id="statError">--</strong></div>
+            <div class="stat">⚡ Velocidad: <strong id="statVel">--</strong></div>
+            <div class="stat">🎯 Overshoot: <strong id="overshoot">--</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: controls -->
+      <div class="controls" role="region" aria-label="Controles">
+        <div class="panel">
+          <label>🎛️ GANANCIA DERIVATIVA (Kd) <span class="mono" id="kdDisplay" style="float:right">1.50</span></label>
+          <input type="range" id="kdSlider" min="0" max="4.0" step="0.02" value="1.5">
+          <div style="font-size:0.82rem; color:var(--muted); text-align:center; margin-top:8px;">↑ Mayor Kd = más frenado anticipado</div>
+        </div>
+
+        <div class="panel">
+          <label>🎯 SETPOINT <span class="mono" id="spDisplay" style="float:right">75%</span></label>
+          <input type="range" id="spSlider" min="10" max="90" step="1" value="75">
+          <div class="row" style="margin-top:8px;">
+            <button id="spMinus" class="ghost">-10%</button>
+            <button id="spMid" class="ghost">50%</button>
+            <button id="spPlus" class="ghost">+10%</button>
+            <button id="spStep">⚡ ESCALÓN 25→75%</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <label>Parámetros físicos</label>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div style="flex:1;">
+              <div style="font-size:0.82rem; color:var(--muted);">Inercia</div>
+              <input type="range" id="inertiaSlider" min="0.5" max="3.0" step="0.05" value="1.2">
+            </div>
+            <div style="width:64px; text-align:center;" id="inertiaVal" class="mono">1.20</div>
+          </div>
+          <div style="height:8px"></div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <div style="flex:1;">
+              <div style="font-size:0.82rem; color:var(--muted);">Rozamiento</div>
+              <input type="range" id="frictionSlider" min="0.1" max="1.5" step="0.02" value="0.4">
+            </div>
+            <div style="width:64px; text-align:center;" id="frictionVal" class="mono">0.40</div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <button id="resetBtn" class="ghost">⟳ REINICIAR</button>
+            <button id="pauseBtn">⏸ PAUSA</button>
+          </div>
+        </div>
+
+        <div class="panel" style="text-align:center;">
+          <div style="font-family:var(--mono); font-size:1.1rem;" id="derivativeValue">0.00</div>
+          <div style="font-size:0.78rem; color:var(--muted);">de/dt (velocidad de cambio del error)</div>
+        </div>
+      </div>
+    </div>
+
+    <footer>🧠 <strong>CONTROL DERIVATIVO PURO:</strong> u(t) = Kd · de/dt — anticipa el movimiento y reduce overshoot.</footer>
+  </div>
+
+  <script>
+    // Variables del sistema (misma lógica que antes)
+    let position = 35.0;
+    let setpoint = 75.0;
+    let Kd = 1.5;
+    let velocity = 0.0;
+    let inertia = 1.2;
+    let friction = 0.4;
+    const maxForce = 45.0;
+
+    let dt = 0.04;
+    let simTime = 0;
+    let lastError = setpoint - position;
+    let derivative = 0;
+    let maxOvershoot = 0;
+
+    // DOM
+    const effector = document.getElementById('effector');
+    const target = document.getElementById('target');
+    const kdSlider = document.getElementById('kdSlider');
+    const kdDisplay = document.getElementById('kdDisplay');
+    const spSlider = document.getElementById('spSlider');
+    const spDisplay = document.getElementById('spDisplay');
+    const inertiaSlider = document.getElementById('inertiaSlider');
+    const frictionSlider = document.getElementById('frictionSlider');
+    const inertiaVal = document.getElementById('inertiaVal');
+    const frictionVal = document.getElementById('frictionVal');
+    const derivativeValue = document.getElementById('derivativeValue');
+    const derivBubble = document.getElementById('derivBubble');
+    const statPos = document.getElementById('statPos');
+    const statError = document.getElementById('statError');
+    const statVel = document.getElementById('statVel');
+    const overshootSpan = document.getElementById('overshoot');
+    const resetBtn = document.getElementById('resetBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const spMinus = document.getElementById('spMinus');
+    const spPlus = document.getElementById('spPlus');
+    const spMid = document.getElementById('spMid');
+    const spStep = document.getElementById('spStep');
+
+    // Gráfica
+    const canvas = document.getElementById('trendCanvas');
+    const ctx = canvas.getContext('2d');
+    let timeData = [], spData = [], posData = [], velData = [];
+    let running = true;
+
+    function updateParams(){
+      Kd = parseFloat(kdSlider.value);
+      kdDisplay.innerText = Kd.toFixed(3);
+      inertia = parseFloat(inertiaSlider.value);
+      inertiaVal.innerText = inertia.toFixed(2);
+      friction = parseFloat(frictionSlider.value);
+      frictionVal.innerText = friction.toFixed(2);
+    }
+
+    function setSetpoint(val){
+      setpoint = Math.min(90, Math.max(10, val));
+      spSlider.value = setpoint;
+      spDisplay.innerText = setpoint + '%';
+      const arena = document.getElementById('arena');
+      const w = arena.clientWidth;
+      target.style.left = (setpoint/100)*w + 'px';
+    }
+
+    function updateVisuals(){
+      const arena = document.getElementById('arena');
+      const w = arena.clientWidth;
+      effector.style.left = (position/100)*w + 'px';
+      derivBubble.style.right = '12px';
+      derivBubble.innerText = 'de/dt: ' + derivative.toFixed(2) + ' %/s';
+    }
+
+    function updateSystem(){
+      let error = setpoint - position;
+      let errorDerivative = (error - lastError) / dt;
+      derivative = errorDerivative;
+      lastError = error;
+
+      let controlForce = Kd * errorDerivative;
+      controlForce = Math.max(-maxForce, Math.min(maxForce, controlForce));
+
+      let acceleration = (controlForce - friction * velocity) / inertia;
+      velocity += acceleration * dt;
+      position += velocity * dt;
+      position = Math.max(0, Math.min(100, position));
+
+      let currentOvershoot = Math.max(0, position - setpoint);
+      if(currentOvershoot > maxOvershoot) maxOvershoot = currentOvershoot;
+
+      derivativeValue.innerText = derivative.toFixed(2);
+      statPos.innerText = position.toFixed(1) + '%';
+      statError.innerText = (setpoint - position).toFixed(2) + '%';
+      statVel.innerText = velocity.toFixed(2) + '%/s';
+      overshootSpan.innerText = maxOvershoot.toFixed(1) + '%';
+
+      return controlForce;
+    }
+
+    function recordData(){
+      timeData.push(simTime);
+      spData.push(setpoint);
+      posData.push(position);
+      velData.push(velocity);
+      if(timeData.length > 400){
+        timeData.shift(); spData.shift(); posData.shift(); velData.shift();
+      }
+    }
+
+    function drawGraph(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      canvas.width = w; canvas.height = h;
+      ctx.clearRect(0,0,w,h);
+      ctx.fillStyle = "#021018";
+      ctx.fillRect(0,0,w,h);
+
+      // grid lines
+      ctx.strokeStyle = "rgba(255,255,255,0.03)";
+      for(let i=0;i<=4;i++){
+        let y = (h/4)*i;
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+      }
+
+      if(timeData.length < 2) return;
+      let tMin = Math.max(0, simTime - 15);
+      let tMax = simTime + 0.5;
+      const mapX = t => ((t - tMin) / (tMax - tMin)) * w;
+      const mapY = val => h - ((val) / 100) * h;
+
+      // setpoint dashed
+      ctx.setLineDash([6,5]);
+      ctx.strokeStyle = "#bfbf9f";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for(let i=0;i<timeData.length;i++){
+        let x = mapX(timeData[i]), y = mapY(spData[i]);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // position
+      ctx.strokeStyle = "#16a085";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for(let i=0;i<timeData.length;i++){
+        let x = mapX(timeData[i]), y = mapY(posData[i]);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+
+      // velocity (scaled)
+      ctx.strokeStyle = "#9b59b6";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for(let i=0;i<timeData.length;i++){
+        let x = mapX(timeData[i]);
+        let velScaled = 50 + (velData[i] / 2);
+        let yvel = h - (velScaled / 100) * h;
+        if(i===0) ctx.moveTo(x,yvel); else ctx.lineTo(x,yvel);
+      }
+      ctx.stroke();
+    }
+
+    // simulation step
+    function step(){
+      if(!running) return;
+      updateSystem();
+      recordData();
+      simTime += dt;
+      updateVisuals();
+    }
+
+    // RAF loop with fixed dt accumulator
+    let lastFrame = 0, accumulator = 0;
+    function loop(t){
+      requestAnimationFrame(loop);
+      if(!lastFrame){ lastFrame = t; return; }
+      let delta = Math.min(0.033, (t - lastFrame)/1000);
+      lastFrame = t;
+      accumulator += delta;
+      while(accumulator >= dt){
+        step();
+        accumulator -= dt;
+      }
+      drawGraph();
+    }
+
+    // UI events
+    kdSlider.addEventListener('input', ()=> updateParams());
+    inertiaSlider.addEventListener('input', ()=> updateParams());
+    frictionSlider.addEventListener('input', ()=> updateParams());
+    spSlider.addEventListener('input', (e)=> setSetpoint(parseFloat(e.target.value)));
+    spMinus.addEventListener('click', ()=> setSetpoint(setpoint - 10));
+    spPlus.addEventListener('click', ()=> setSetpoint(setpoint + 10));
+    spMid.addEventListener('click', ()=> setSetpoint(50));
+    spStep.addEventListener('click', ()=> { setSetpoint(75); resetSim(); });
+    resetBtn.addEventListener('click', ()=> resetSim());
+    pauseBtn.addEventListener('click', ()=> { running = !running; pauseBtn.innerText = running ? '⏸ PAUSA' : '▶ REANUDAR'; });
+
+    function resetSim(){
+      position = 35.0; velocity = 0; simTime = 0; lastError = setpoint - position;
+      timeData = []; spData = []; posData = []; velData = []; maxOvershoot = 0;
+      for(let i=0;i<4;i++){ step(); simTime += dt; }
+    }
+
+    // init
+    updateParams();
+    setSetpoint(75);
+    resetSim();
+    requestAnimationFrame(loop);
+    window.addEventListener('resize', ()=> drawGraph());
+  </script>
+</body>
+</html>
