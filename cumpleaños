@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Feliz Cumpleaños</title>
+<style>
+  :root{
+    --accent:#ff6b81;
+    --glass: rgba(255,255,255,0.08);
+    --glass-2: rgba(255,255,255,0.12);
+    --text:#fff;
+    --shadow: 0 8px 24px rgba(0,0,0,0.6);
+  }
+  html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+  body{
+    background: #000 url('background.png') center/cover no-repeat fixed;
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .card{
+    width:100%;
+    max-width:980px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.45), rgba(0,0,0,0.6));
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    display:grid;
+    grid-template-columns: 1fr 420px;
+    gap:0;
+    backdrop-filter: blur(6px) saturate(120%);
+  }
+  @media (max-width:900px){
+    .card{grid-template-columns:1fr; max-width:720px;}
+  }
+  .left{
+    padding:36px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    min-height:420px;
+  }
+  .title{
+    font-size:clamp(28px,4vw,44px);
+    font-weight:700;
+    letter-spacing:0.6px;
+    margin:0;
+  }
+  .subtitle{opacity:0.9;margin:0;font-size:16px;}
+  .message{
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    padding:14px;
+    border-radius:10px;
+    color:var(--text);
+    min-height:120px;
+    line-height:1.5;
+  }
+  .message[contenteditable="true"]{outline:2px dashed rgba(255,255,255,0.06); cursor:text;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;}
+  .btn{
+    background:var(--glass-2);
+    border:1px solid rgba(255,255,255,0.06);
+    color:var(--text);
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:transform .12s ease, background .12s;
+  }
+  .btn:hover{transform:translateY(-3px); background:rgba(255,255,255,0.06);}
+  .right{
+    padding:20px;
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    align-items:center;
+    justify-content:center;
+  }
+  .photo-frame{
+    width:100%;
+    max-width:360px;
+    height:260px;
+    border-radius:12px;
+    overflow:hidden;
+    background:#111;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .photo-frame img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .photo-controls{display:flex;gap:8px;margin-top:8px;}
+  .small{padding:8px 10px;font-size:14px;}
+  .music-controls{display:flex;gap:8px;align-items:center;margin-top:6px;}
+  .volume{width:120px;}
+  .footer{font-size:13px;opacity:0.85;margin-top:6px;}
+  .dot{
+    width:10px;height:10px;border-radius:50%;
+    background:var(--accent);display:inline-block;margin-right:8px;
+    box-shadow:0 0 12px rgba(255,107,129,0.6);
+  }
+</style>
+</head>
+<body>
+  <div class="card" role="main" aria-label="Página de cumpleaños">
+    <section class="left">
+      <h1 class="title" id="mainTitle" aria-label="Título editable">Feliz Cumpleaños mi chaparrita hermosa(^///^)</h1>
+      <p class="subtitle" id="subtitle" contenteditable="false">Felices 20 añitos manguito hermoso🥹🥭</p>
+
+      <div class="message" id="dedication" contenteditable="false" aria-label="Mensaje editable">
+        Gracias por haber llegado a mi vida y hacerla más colorida, gracias a tí he podido ser muy feliz durante este periodo de tiempo, sé que no siempre fueron días buenos porque hubieron problemas, pero fuera de todo eso logramos salir adelante juntos siempre con una sonrisa y buenos recuerdos, al final siempre seremos tú y yo juntos por siempre; tendremos un hijo como lo planeamos y seremos una familia muy feliz, por favor nunca te rindas mi niña hermosa, sé que eres alguien muy fuerte y que puedes lograr todo lo que te propongas💗💖.
+Perdon por ser tan malo expresando mi sentimientos amor, nunca he sido muy bueno para éso, pero quiero que sepas que ésto lo hice con mucho amor y cariño para ti porque te amo demasiado, prometo mejorar :'c.
+Con cariño tu novio y futuro esposo🥺🙈
+      </div>
+
+      <div class="controls" aria-hidden="false">
+        <button class="btn" id="surpriseBtn">Sorpresa (cambia foto)</button>
+      </div>
+
+      <div class="footer">
+        <span class="dot" aria-hidden="true"></span>
+      </div>
+    </section>
+
+    <aside class="right">
+      <div class="photo-frame" aria-live="polite">
+        <img id="photo" src="photos/photo1.jpg" alt="Foto de la pareja">
+      </div>
+
+      <div class="photo-controls" role="group" aria-label="Controles de fotos">
+        <button class="btn small" id="prevBtn">Anterior</button>
+        <button class="btn small" id="nextBtn">Siguiente</button>
+        <button class="btn small" id="randomBtn">Aleatoria</button>
+      </div>
+
+      <div class="music-controls" role="group" aria-label="Controles de música">
+        <button class="btn small" id="playBtn">Reproducir</button>
+        <button class="btn small" id="pauseBtn">Pausar</button>
+        <input class="volume" id="volume" type="range" min="0" max="1" step="0.01" value="0.6" aria-label="Volumen">
+      </div>
+
+      <div style="font-size:13px;opacity:0.9;margin-top:6px;">
+        <em>Usa los botones para navegar las fotos y controlar la música.</em>
+      </div>
+    </aside>
+  </div>
+
+  <audio id="bgMusic" loop preload="auto">
+    <source src="music.mp3" type="audio/mpeg">
+    Tu navegador no soporta audio.
+  </audio>
+
+<script>
+  // --- Configura aquí las fotos disponibles ---
+  const photos = [
+    'photos/photo1.jpg',
+    'photos/photo2.jpg',
+    'photos/photo3.jpg',
+    'photos/photo4.jpg',
+    'photos/photo5.jpg',
+    'photos/photo6.jpg',
+    'photos/photo7.jpg'
+
+  ];
+
+  // Elementos
+  const photoEl = document.getElementById('photo');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const randomBtn = document.getElementById('randomBtn');
+  const surpriseBtn = document.getElementById('surpriseBtn');
+  const playBtn = document.getElementById('playBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const volume = document.getElementById('volume');
+  const bgMusic = document.getElementById('bgMusic');
+  const saveBtn = document.getElementById('saveBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // Text elements to persist
+  const mainTitle = document.getElementById('mainTitle');
+  const subtitle = document.getElementById('subtitle');
+  const dedication = document.getElementById('dedication');
+
+  // State
+  let idx = 0;
+  function showPhoto(i){
+    idx = (i + photos.length) % photos.length;
+    // efecto suave
+    photoEl.style.opacity = 0;
+    setTimeout(()=> {
+      photoEl.src = photos[idx];
+      photoEl.style.transform = 'scale(1.02)';
+    }, 220);
+    setTimeout(()=> {
+      photoEl.style.opacity = 1;
+      photoEl.style.transform = 'scale(1)';
+    }, 420);
+  }
+
+  prevBtn.addEventListener('click', ()=> showPhoto(idx-1));
+  nextBtn.addEventListener('click', ()=> showPhoto(idx+1));
+  randomBtn.addEventListener('click', ()=> showPhoto(Math.floor(Math.random()*photos.length)));
+  surpriseBtn.addEventListener('click', ()=> {
+    showPhoto(Math.floor(Math.random()*photos.length));
+    // pequeño efecto en el texto
+    dedication.animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'},{transform:'translateY(0)'}],{duration:450});
+  });
+
+  // Música
+  playBtn.addEventListener('click', async ()=>{
+    try{
+      await bgMusic.play();
+    }catch(e){
+      // autoplay bloqueado; el usuario debe interactuar
+      alert('Haz clic en reproducir de nuevo si el navegador bloqueó la reproducción automática.');
+    }
+  });
+  pauseBtn.addEventListener('click', ()=> bgMusic.pause());
+  volume.addEventListener('input', ()=> bgMusic.volume = volume.value);
+  bgMusic.volume = volume.value;
+
+  // Guardar textos en localStorage
+  function saveTexts(){
+    localStorage.setItem('cumple_title', mainTitle.innerText);
+    localStorage.setItem('cumple_subtitle', subtitle.innerText);
+    localStorage.setItem('cumple_message', dedication.innerHTML);
+    alert('Cambios guardados localmente.');
+  }
+  function loadTexts(){
+    const t = localStorage.getItem('cumple_title');
+    const s = localStorage.getItem('cumple_subtitle');
+    const m = localStorage.getItem('cumple_message');
+    if(t) mainTitle.innerText = t;
+    if(s) subtitle.innerText = s;
+    if(m) dedication.innerHTML = m;
+  }
+  saveBtn.addEventListener('click', saveTexts);
+  resetBtn.addEventListener('click', ()=> {
+    if(confirm('¿Restablecer los textos a los valores iniciales?')) {
+      localStorage.removeItem('cumple_title');
+      localStorage.removeItem('cumple_subtitle');
+      localStorage.removeItem('cumple_message');
+      location.reload();
+    }
+  });
+
+  // Cargar estado inicial
+  window.addEventListener('load', ()=>{
+    loadTexts();
+    showPhoto(0);
+  });
+
+  // Accesibilidad: permitir navegación por teclado para fotos
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'ArrowRight') showPhoto(idx+1);
+    if(e.key === 'ArrowLeft') showPhoto(idx-1);
+    if(e.key === ' ') { // espacio pausa/reproduce
+      e.preventDefault();
+      if(bgMusic.paused) bgMusic.play(); else bgMusic.pause();
+    }
+  });
+</script>
+</body>
+</html>
